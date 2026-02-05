@@ -8,7 +8,6 @@ namespace MediLink.AI.Service.Pluggins
 {
     public class PharmacyPlugin(HttpClient httpClient)
     {
-        private readonly HttpClient _httpClient = httpClient;
 
         [KernelFunction, Description("Check if a newly diagnosed condition or suggested medication conflicts with the patient's existing medications using the openFDA drug label API.")]
         public async Task<string> CheckDrugInteractions(
@@ -64,7 +63,7 @@ namespace MediLink.AI.Service.Pluggins
                     ["limit"] = "1"
                 });
 
-                var response = await _httpClient.GetAsync(requestUri);
+                var response = await httpClient.GetAsync(requestUri);
 
                 if (!response.IsSuccessStatusCode) return null;
 

@@ -2,5 +2,5 @@
 {
     public record ConsultationRequest(string PatientNotes, string ExistingMeds);
 
-    public record IngestionRequest(string ManualContent);
+    public record IngestionRequest(string Content, string Category);
 }
