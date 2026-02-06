@@ -11,16 +11,26 @@ namespace MediLink.AI.Service.Controllers
     [ApiController]
     public class ConsultationController(MedicalIngestionService ingestionService, ConsultationWorkflow consultationWorkflow) : ControllerBase
     {
-        [HttpPost("ingest")]
-        public async Task<IActionResult> IngestAsync([FromBody] IngestionRequest request)
+        [HttpPost("upload-manual")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> IngestAsync(IFormFile file)
         {
-            await ingestionService.IngestManualAsync(request.Content, request.Category);
+            if (file.Length == 0) return BadRequest("File is empty");
 
-            return Ok("Ingestion complete");
+            //save temporarily
+            var tempPath = Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(tempPath))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            await ingestionService.IngestManualAsync(tempPath, "Pharmacy");
+
+            return Ok($"Successfully ingested {file.FileName} in the vector database.");
         }
 
         [HttpPost("start")]
-        public async Task<IActionResult> StartConsultationAsync([FromBody] ConsultationRequest request)
+        public async Task<ActionResult<MedicalAdvice>> StartConsultationAsync([FromBody] ConsultationRequest request)
         {
             var response = await consultationWorkflow.RunConsultationAsync(request.PatientNotes, request.ExistingMeds);
 

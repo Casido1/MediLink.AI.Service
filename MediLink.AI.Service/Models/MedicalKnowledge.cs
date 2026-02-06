@@ -13,7 +13,7 @@ namespace MediLink.AI.Service.Models
         [VectorStoreData]
         public string Category { get; set; } // e.g., "Pharmacology", "Diagnosis"
 
-        [VectorStoreVector(Dimensions: 768, DistanceFunction = DistanceFunction.CosineSimilarity, IndexKind = IndexKind.Hnsw)] // Gemini embedding dimension is 768
+        [VectorStoreVector(Dimensions: 3072, DistanceFunction = DistanceFunction.CosineSimilarity)] // Gemini embedding dimension is 3072
         public ReadOnlyMemory<float> Embedding { get; set; }
     }
 }

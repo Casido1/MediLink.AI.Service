@@ -2,7 +2,9 @@ using MediLink.AI.Service.Agents;
 using MediLink.AI.Service.Pluggins;
 using MediLink.AI.Service.Services;
 using MediLink.AI.Service.Workflows;
+using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using System.Net.Http.Headers;
 
 
@@ -11,8 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddKernel()
-    .AddGoogleAIGeminiChatCompletion("gemini-2.0-flash", builder.Configuration["Gemini:ApiKey"])
-    .AddGoogleAIEmbeddingGenerator("text-embedding-005", builder.Configuration["Gemini:ApiKey"]);
+    .AddGoogleAIGeminiChatCompletion("gemini-2.5-flash", builder.Configuration["Gemini:ApiKey"])
+    .AddGoogleAIEmbeddingGenerator("gemini-embedding-001", builder.Configuration["Gemini:ApiKey"]);
+
+builder.Services.AddSingleton<IChatClient>(sp =>
+{
+    // Get the Gemini service we just registered above
+    var chatService = sp.GetRequiredService<IChatCompletionService>();
+
+    // Convert it to the unified IChatClient interface
+    return chatService.AsChatClient();
+});
 
 builder.Services.AddPineconeVectorStore(builder.Configuration["Pinecone:ApiKey"]);
 
