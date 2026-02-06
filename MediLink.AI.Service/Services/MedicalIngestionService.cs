@@ -1,8 +1,10 @@
-﻿using MediLink.AI.Service.Models;
+﻿using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using MediLink.AI.Service.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
 using System.Text;
-using UglyToad.PdfPig;
 
 namespace MediLink.AI.Service.Services
 {
@@ -10,15 +12,29 @@ namespace MediLink.AI.Service.Services
     VectorStore vectorStore, // Provided by Abstractions package
     IEmbeddingGenerator<string, Embedding<float>> embeddingService)
     {
-        public async Task IngestManualAsync(string filePath, string category)
+        public async Task IngestManualAsync(Stream pdfStream, string sourceName, CancellationToken ct)
         {
             //Extract text from pdf
             var fullText = new StringBuilder();
-            using (var pdf = PdfDocument.Open(filePath))
+            using (var pdfReader = new PdfReader(pdfStream)) // stream from your controller
+            using (var pdfDoc = new PdfDocument(pdfReader))
             {
-                foreach (var page in pdf.GetPages())
+                for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
                 {
-                    fullText.AppendLine(page.Text);
+                    try
+                    {
+                        var page = pdfDoc.GetPage(i);
+                        // LocationTextExtractionStrategy handles columns better for manuals
+                        var strategy = new LocationTextExtractionStrategy();
+                        string pageText = PdfTextExtractor.GetTextFromPage(page, strategy);
+
+                        fullText.AppendLine(pageText);
+                    }
+                    catch (Exception ex)
+                    {
+                        // If a page is truly broken, we skip it instead of crashing the app
+                        Console.WriteLine($"Could not parse page {i}: {ex.Message}");
+                    }
                 }
             }
 
@@ -40,7 +56,7 @@ namespace MediLink.AI.Service.Services
                 {
                     Id = Guid.NewGuid().ToString(),
                     Text = chunk,
-                    Category = category,
+                    SourceName = sourceName,
                     Embedding = embedding.Vector
                 };
 

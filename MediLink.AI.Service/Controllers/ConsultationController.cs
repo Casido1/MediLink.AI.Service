@@ -13,20 +13,31 @@ namespace MediLink.AI.Service.Controllers
     {
         [HttpPost("upload-manual")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> IngestAsync(IFormFile file)
+        [DisableRequestSizeLimit]
+        public async Task<IActionResult> IngestAsync(IFormFile file, CancellationToken ct)
         {
-            if (file.Length == 0) return BadRequest("File is empty");
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
 
-            //save temporarily
-            var tempPath = Path.GetTempFileName();
-            using (var stream = System.IO.File.Create(tempPath))
+            if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Only PDF files are supported.");
+
+            try
             {
-                await file.CopyToAsync(stream);
+                using var stream = file.OpenReadStream();
+
+                await ingestionService.IngestManualAsync(stream, file.FileName, ct);
+
+                return Ok(new
+                {
+                    Message = "Ingestion completed successfully",
+                    Source = file.FileName
+                });
             }
-
-            await ingestionService.IngestManualAsync(tempPath, "Pharmacy");
-
-            return Ok($"Successfully ingested {file.FileName} in the vector database.");
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost("start")]
