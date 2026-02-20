@@ -42,7 +42,7 @@ namespace MediLink.AI.Service.Services
             var chunks = SplitText(fullText.ToString(), 1000, 200);
 
             // Get the collection (index) from Pinecone
-            var collection = vectorStore.GetCollection<string, MedicalKnowledge>("medilink-index");
+            var collection = vectorStore.GetCollection<string, MedicalKnowledge>("medilink-index2");
 
             // Create the index if it doesn't exist (Pinecone serverless)
             await collection.EnsureCollectionExistsAsync();

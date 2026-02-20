@@ -11,7 +11,7 @@ namespace MediLink.AI.Service.Pluggins
     IEmbeddingGenerator<string, Embedding<float>> embeddingService)
     {
         private readonly VectorStoreCollection<string, MedicalKnowledge> _collection =
-            vectorStore.GetCollection<string, MedicalKnowledge>("medilink-index");
+            vectorStore.GetCollection<string, MedicalKnowledge>("medilink-index2");
 
         [KernelFunction, Description("Medical for medical knowledge based on a query.")]
         public async Task<string> SearchKnowledgeAsync([Description("The query to search for")] string query)

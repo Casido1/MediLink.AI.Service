@@ -13,7 +13,7 @@ namespace MediLink.AI.Service.Models
         [VectorStoreData]
         public string SourceName { get; set; }
 
-        [VectorStoreVector(Dimensions: 3072, DistanceFunction = DistanceFunction.CosineSimilarity)] // Gemini embedding dimension is 3072
+        [VectorStoreVector(Dimensions: 768, DistanceFunction = DistanceFunction.CosineSimilarity)] // Ollama nomic-embed-text dimension is 768
         public ReadOnlyMemory<float> Embedding { get; set; }
     }
 }
